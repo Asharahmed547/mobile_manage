@@ -1,5 +1,5 @@
 [build]
-  command = "flutter build web --release --dart-define=GEMINI_API_KEY=$GEMINI_API_KEY --dart-define=GROK_API_KEY=$GROK_API_KEY"
+  command = "git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter && export PATH=\"$PATH:$HOME/flutter/bin\" && flutter precache && flutter build web --release --dart-define=GEMINI_API_KEY=$GEMINI_API_KEY --dart-define=GROK_API_KEY=$GROK_API_KEY"
   publish = "build/web"
 
 [[redirects]]
