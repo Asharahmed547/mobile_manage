@@ -106,47 +106,53 @@ class _SalesPageState extends State<SalesPage> {
                     .toLowerCase();
             return t.contains(q.trim().toLowerCase());
           }).toList();
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24)),
-            title: const Text('Select Phone',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            content: SizedBox(
-              width: 440,
-              height: 420,
-              child: Column(
-                children: [
-                  TextField(
-                    autofocus: true,
-                    onChanged: (v) => setS(() => q = v),
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Search model, color or IMEI',
-                    ),
+          return _FullScreenForm(
+            title: Row(
+              children: [
+                const Expanded(
+                  child: Text('Select Phone',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20)),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            content: Column(
+              children: [
+                TextField(
+                  autofocus: true,
+                  onChanged: (v) => setS(() => q = v),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search model, color or IMEI',
                   ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: items.isEmpty
-                        ? const Center(child: Text('No match found'))
-                        : ListView.builder(
-                            itemCount: items.length,
-                            itemBuilder: (_, i) {
-                              final m = items[i];
-                              return ListTile(
-                                leading: const Icon(Icons.phone_android,
-                                    color: kPrimary),
-                                title: Text('${m['brand']} ${m['model']}'),
-                                subtitle: Text(
-                                    'IMEI ${m['imei_1']}\nCost: ${rs(m['purchase_price'] as num)}'),
-                                isThreeLine: true,
-                                onTap: () => Navigator.pop(ctx, m),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: items.isEmpty
+                      ? const Center(child: Text('No match found'))
+                      : ListView.builder(
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          itemCount: items.length,
+                          itemBuilder: (_, i) {
+                            final m = items[i];
+                            return ListTile(
+                              leading: const Icon(Icons.phone_android,
+                                  color: kPrimary),
+                              title: Text('${m['brand']} ${m['model']}'),
+                              subtitle: Text(
+                                  'IMEI ${m['imei_1']}\nCost: ${rs(m['purchase_price'] as num)}'),
+                              isThreeLine: true,
+                              onTap: () => Navigator.pop(ctx, m),
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
             actions: [
               TextButton(
@@ -190,178 +196,165 @@ class _SalesPageState extends State<SalesPage> {
           final pc =
               isProfit ? const Color(0xFF059669) : const Color(0xFFDC2626);
 
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24)),
-            titlePadding: const EdgeInsets.fromLTRB(24, 20, 12, 0),
+          return _FullScreenForm(
             title: Row(
               children: [
                 const Icon(Icons.point_of_sale, color: kPrimary),
                 const SizedBox(width: 10),
                 const Expanded(
                     child: Text('New Sale',
-                        style: TextStyle(fontWeight: FontWeight.bold))),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20))),
                 IconButton(
                   onPressed: saving ? null : () => Navigator.pop(ctx),
                   icon: const Icon(Icons.close),
                 ),
               ],
             ),
-            content: SizedBox(
-              width: 440,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (errorText != null)
-                      Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(errorText!,
-                            style: TextStyle(color: Colors.red.shade800)),
-                      ),
+            content: SingleChildScrollView(
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (errorText != null)
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(14),
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: kPrimary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14),
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${phone['brand']} ${phone['model']}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
-                          const SizedBox(height: 2),
-                          Text('IMEI ${phone['imei_1']}',
-                              style: TextStyle(color: Colors.grey.shade700)),
-                          Text('Purchase cost: ${rs(cost)}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w600)),
-                        ],
-                      ),
+                      child: Text(errorText!,
+                          style: TextStyle(color: Colors.red.shade800)),
                     ),
-                    const SizedBox(height: 18),
-                    const Text('Price',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: kPrimary)),
-                    const SizedBox(height: 10),
-                    Row(
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: kPrimary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: retail,
-                            keyboardType: TextInputType.number,
-                            onChanged: (_) => setD(() {}),
-                            decoration: const InputDecoration(
-                                labelText: 'Retail Price *',
-                                prefixText: 'Rs '),
-                          ),
+                        Text('${phone['brand']} ${phone['model']}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 2),
+                        Text('IMEI ${phone['imei_1']}',
+                            style: TextStyle(color: Colors.grey.shade700)),
+                        Text('Purchase cost: ${rs(cost)}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text('Price',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: kPrimary)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: retail,
+                          keyboardType: TextInputType.number,
+                          onChanged: (_) => setD(() {}),
+                          decoration: const InputDecoration(
+                              labelText: 'Price *', prefixText: 'Rs '),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: discount,
-                            keyboardType: TextInputType.number,
-                            onChanged: (_) => setD(() {}),
-                            decoration: const InputDecoration(
-                                labelText: 'Discount', prefixText: 'Rs '),
-                          ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: discount,
+                          keyboardType: TextInputType.number,
+                          onChanged: (_) => setD(() {}),
+                          decoration: const InputDecoration(
+                              labelText: 'Discount', prefixText: 'Rs '),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: pc.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Final Sale Price: ${rs(fp)}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${isProfit ? 'Profit' : 'Loss'}: ${rs(profit.abs())}',
+                          style: TextStyle(
+                              color: pc,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: pc.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Final Sale Price: ${rs(fp)}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${isProfit ? 'Profit' : 'Loss'}: ${rs(profit.abs())}',
-                            style: TextStyle(
-                                color: pc,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text('Customer',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: kPrimary)),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: custName,
-                      textCapitalization: TextCapitalization.words,
-                      decoration:
-                          const InputDecoration(labelText: 'Customer Name'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: custPhone,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                          labelText: 'Customer Phone'),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: payment,
-                            decoration: const InputDecoration(
-                                labelText: 'Payment Mode'),
-                            items: const [
-                              DropdownMenuItem(
-                                  value: 'CASH', child: Text('Cash')),
-                              DropdownMenuItem(
-                                  value: 'BANK',
-                                  child: Text('Bank Transfer')),
-                              DropdownMenuItem(
-                                  value: 'CARD', child: Text('Card')),
-                            ],
-                            onChanged: (v) => setD(() => payment = v!),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: warranty,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                                labelText: 'Warranty (months)'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text('Customer',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: kPrimary)),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: custName,
+                    textCapitalization: TextCapitalization.words,
+                    decoration:
+                        const InputDecoration(labelText: 'Customer Name'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: custPhone,
+                    keyboardType: TextInputType.phone,
+                    decoration:
+                        const InputDecoration(labelText: 'Customer Phone'),
+                  ),
+                  const SizedBox(height: 12),
+                  // Payment Mode ab full width, overflow nahi hoga
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    initialValue: payment,
+                    decoration:
+                        const InputDecoration(labelText: 'Payment Mode'),
+                    items: const [
+                      DropdownMenuItem(value: 'CASH', child: Text('Cash')),
+                      DropdownMenuItem(
+                          value: 'BANK', child: Text('Bank Transfer')),
+                      DropdownMenuItem(value: 'CARD', child: Text('Card')),
+                    ],
+                    onChanged: (v) => setD(() => payment = v!),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: warranty,
+                    keyboardType: TextInputType.number,
+                    decoration:
+                        const InputDecoration(labelText: 'Warranty (months)'),
+                  ),
+                ],
               ),
             ),
-            actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
             actions: [
               TextButton(
                 onPressed: saving ? null : () => Navigator.pop(ctx),
                 child: const Text('Cancel'),
               ),
+              const SizedBox(width: 8),
               FilledButton.icon(
                 icon: saving
                     ? const SizedBox(
@@ -638,6 +631,61 @@ class _SalesPageState extends State<SalesPage> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ======================= FULL SCREEN FORM (keyboard-safe) =======================
+// Poori screen ka form. Keyboard khulne par body chhoti hoti hai, content scroll
+// hota hai aur buttons keyboard ke upar rehte hain.
+class _FullScreenForm extends StatelessWidget {
+  final Widget title;
+  final Widget content;
+  final List<Widget> actions;
+
+  const _FullScreenForm({
+    required this.title,
+    required this.content,
+    required this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: Colors.white,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+                child: title,
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: content,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: actions,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

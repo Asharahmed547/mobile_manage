@@ -77,17 +77,23 @@ class _InventoryPageState extends State<InventoryPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: const Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626)),
             SizedBox(width: 8),
-            Text('Delete Phone?',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Expanded(
+              child: Text('Delete Phone?',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
           ],
         ),
-        content: Text(
-          'Kya aap waqai "${m['brand']} ${m['model']}" (IMEI: ${m['imei_1']}) ko permanently delete karna chahte hain?\n\nIs se is mobile ka purchase/sale record bhi khatam ho jayega.',
+        content: SingleChildScrollView(
+          child: Text(
+            'Kya aap waqai "${m['brand']} ${m['model']}" (IMEI: ${m['imei_1']}) ko permanently delete karna chahte hain?\n\nIs se is mobile ka purchase/sale record bhi khatam ho jayega.',
+          ),
         ),
         actions: [
           TextButton(
@@ -146,11 +152,7 @@ class _InventoryPageState extends State<InventoryPage> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setD) => AlertDialog(
-          backgroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          titlePadding: const EdgeInsets.fromLTRB(24, 20, 12, 0),
+        builder: (ctx, setD) => _FullScreenForm(
           title: Row(
             children: [
               const Icon(Icons.add_circle, color: kPrimary),
@@ -213,8 +215,8 @@ class _InventoryPageState extends State<InventoryPage> {
                       Expanded(
                         child: TextField(
                           controller: variant,
-                          decoration: const InputDecoration(
-                              labelText: 'Storage / RAM'),
+                          decoration:
+                              const InputDecoration(labelText: 'Storage/RAM'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -230,13 +232,18 @@ class _InventoryPageState extends State<InventoryPage> {
                   ),
                   gap(),
                   DropdownButtonFormField<String>(
+                    isExpanded: true, // FIX: dropdown overflow se bachata hai
                     initialValue: condition,
                     decoration: const InputDecoration(labelText: 'Condition'),
                     items: const [
                       DropdownMenuItem(
-                          value: 'NEW', child: Text('New (Box Packed)')),
+                          value: 'NEW',
+                          child: Text('New (Box Packed)',
+                              overflow: TextOverflow.ellipsis)),
                       DropdownMenuItem(
-                          value: 'USED', child: Text('Used / Pre-Owned')),
+                          value: 'USED',
+                          child: Text('Used / Pre-Owned',
+                              overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: (v) => setD(() => condition = v!),
                   ),
@@ -286,7 +293,6 @@ class _InventoryPageState extends State<InventoryPage> {
               ),
             ),
           ),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
           actions: [
             TextButton(
               onPressed: saving ? null : () => Navigator.pop(ctx),
@@ -396,10 +402,13 @@ class _InventoryPageState extends State<InventoryPage> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // FIX: lambi sheet screen se bahar na jaye
+      useSafeArea: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (sheetCtx) => Padding(
+      builder: (sheetCtx) => SingleChildScrollView(
+        // FIX: chhoti screen par scroll ho sakti hai
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -535,7 +544,8 @@ class _InventoryPageState extends State<InventoryPage> {
                               const SizedBox(height: 10),
                           itemBuilder: (context, i) {
                             final m = list[i];
-                            final sc = _statusColor(m['status']);
+                            final sc = _statusColor('${m['status']}');
+                            final brandText = '${m['brand']}';
                             final extra = [
                               if (m['variant'] != null) m['variant'],
                               if (m['color'] != null) m['color'],
@@ -554,9 +564,12 @@ class _InventoryPageState extends State<InventoryPage> {
                                         backgroundColor:
                                             kPrimary.withValues(alpha: 0.1),
                                         child: Text(
-                                          '${m['brand']}'
-                                              .substring(0, 1)
-                                              .toUpperCase(),
+                                          // FIX: khali brand par crash nahi hoga
+                                          brandText.isEmpty
+                                              ? '?'
+                                              : brandText
+                                                  .substring(0, 1)
+                                                  .toUpperCase(),
                                           style: const TextStyle(
                                               color: kPrimary,
                                               fontWeight: FontWeight.bold,
@@ -570,18 +583,27 @@ class _InventoryPageState extends State<InventoryPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text('${m['brand']} ${m['model']}',
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
                                                 style: const TextStyle(
                                                     fontWeight:
                                                         FontWeight.bold,
                                                     fontSize: 16)),
                                             const SizedBox(height: 2),
                                             Text(extra,
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                     color:
                                                         Colors.grey.shade600,
                                                     fontSize: 13)),
                                             const SizedBox(height: 2),
                                             Text('IMEI ${m['imei_1']}',
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                     color:
                                                         Colors.grey.shade500,
@@ -589,6 +611,7 @@ class _InventoryPageState extends State<InventoryPage> {
                                           ],
                                         ),
                                       ),
+                                      const SizedBox(width: 8),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.end,
@@ -609,7 +632,7 @@ class _InventoryPageState extends State<InventoryPage> {
                                               borderRadius:
                                                   BorderRadius.circular(20),
                                             ),
-                                            child: Text(m['status'],
+                                            child: Text('${m['status']}',
                                                 style: TextStyle(
                                                     color: sc,
                                                     fontSize: 11,
@@ -628,6 +651,54 @@ class _InventoryPageState extends State<InventoryPage> {
                       ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ======================= FULL SCREEN FORM (keyboard-safe) =======================
+// Phone par dialog ki jagah poori screen. Keyboard khulne par form scroll hota hai
+// aur Save/Cancel buttons keyboard ke upar hi rehte hain.
+class _FullScreenForm extends StatelessWidget {
+  final Widget title;
+  final Widget content;
+  final List<Widget> actions;
+
+  const _FullScreenForm({
+    required this.title,
+    required this.content,
+    required this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: Colors.white,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+                child: title,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: content,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: actions,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
