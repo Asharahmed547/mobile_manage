@@ -1,0 +1,45 @@
+name: Flutter CI/CD to Cloudflare Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: DevOps Quality Gate - Static Analysis
+        run: flutter analyze --no-fatal-infos
+
+      - name: DevOps Quality Gate - Run Tests
+        run: flutter test
+
+      - name: Build Web Release (Injecting API Keys)
+        run: |
+          flutter build web --release \
+            --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+            --dart-define=GROK_API_KEY=${{ secrets.GROK_API_KEY }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'first-choice-mobile'
+          directory: 'build/web'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

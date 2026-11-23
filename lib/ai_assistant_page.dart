@@ -7,7 +7,8 @@ import 'theme.dart';
 
 final _db = Supabase.instance.client;
 
-// Keys: flutter run --dart-define=GEMINI_API_KEY=xxx --dart-define=GROK_API_KEY=yyy
+// Keys build time par --dart-define se aati hain:
+// flutter run --dart-define=GEMINI_API_KEY=xxx --dart-define=GROK_API_KEY=yyy
 // NOTE: Production mein keys Supabase Edge Function mein rakhein, app mein nahi.
 const String _geminiApiKey =
     String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
@@ -15,16 +16,21 @@ const String _grokApiKey =
     String.fromEnvironment('GROK_API_KEY', defaultValue: '');
 
 // ---- Model names (ai.google.dev/gemini-api/docs/models se check kar lein) ----
-// Pehle sab se tez (Flash-Lite), phir behtar quality wala Flash.
+// Curl test mein jo models 200 diye woh pehle rakhe hain. Ek fail ho (401/404/429/503
+// ya timeout) to code khud agla model try karta hai.
 const List<String> _geminiModels = [
   'gemini-3.5-flash-lite',
-  'gemini-3.8-flash',
+  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-flash-latest',
+  'gemini-3.8-flash', // abhi kabhi kabhi 503 (busy) deta hai, is liye aakhir mein
 ];
 // Fallback. xAI docs (docs.x.ai/models) ke mutabiq current model grok-4.7 hai.
 // Agar 404 aaye to console.x.ai/team/default/models se exact ID copy karein.
 const String _grokModel = 'grok-4.7';
 
-const Duration _aiTimeout = Duration(seconds: 8);
+const Duration _aiTimeout = Duration(seconds: 15);
 const Duration _grokTimeout = Duration(seconds: 25); // reasoning model slow ho sakta hai
 const Duration _dataTtl = Duration(seconds: 15);
 
@@ -263,8 +269,10 @@ class ShopAiService extends ChangeNotifier {
         'units_in_stock': inStock,
         'stock_value_at_purchase_price': _rs(stockValue),
         'status_counts': statusCounts,
-        'models_in_stock':
-            stockKeys.take(40).map((k) => {'mobile': k, 'units': stockGroups[k]}).toList(),
+        'models_in_stock': stockKeys
+            .take(40)
+            .map((k) => {'mobile': k, 'units': stockGroups[k]})
+            .toList(),
       },
       'recent_sales': recent.toList(),
     };
@@ -397,21 +405,28 @@ Shopkeeper's latest message:
 $question
 ''';
 
-    debugPrint(
-        '[AI] keys: gemini=${_geminiApiKey.isNotEmpty ? "set" : "MISSING"}, grok=${_grokApiKey.isNotEmpty ? "set" : "MISSING"}');
+    final geminiKey = _geminiApiKey;
+    final grokKey = _grokApiKey;
 
-    if (_geminiApiKey.isEmpty) _lastError += 'GEMINI_API_KEY app tak nahi pahunchi (khali hai)\n';
-    if (_grokApiKey.isEmpty) _lastError += 'GROK_API_KEY app tak nahi pahunchi (khali hai)\n';
+    debugPrint(
+        '[AI] keys: gemini=${geminiKey.isNotEmpty ? "set" : "MISSING"}, grok=${grokKey.isNotEmpty ? "set" : "MISSING"}');
+
+    if (geminiKey.isEmpty) {
+      _lastError += 'GEMINI_API_KEY build mein nahi di gayi (khali hai)\n';
+    }
+    if (grokKey.isEmpty) {
+      _lastError += 'GROK_API_KEY build mein nahi di gayi (khali hai)\n';
+    }
 
     // 1. Gemini
-    if (_geminiApiKey.isNotEmpty) {
-      final r = await _askGemini(system, userContent);
+    if (geminiKey.isNotEmpty) {
+      final r = await _askGemini(system, userContent, geminiKey);
       if (r != null) return r;
     }
 
     // 2. Grok fallback
-    if (_grokApiKey.isNotEmpty) {
-      final r = await _askGrok(system, userContent);
+    if (grokKey.isNotEmpty) {
+      final r = await _askGrok(system, userContent, grokKey);
       if (r != null) return r;
     }
 
@@ -419,7 +434,8 @@ $question
   }
 
   // ---------- GEMINI ----------
-  Future<String?> _askGemini(String system, String userContent) async {
+  Future<String?> _askGemini(
+      String system, String userContent, String apiKey) async {
     for (final model in _geminiModels) {
       try {
         final sw = Stopwatch()..start();
@@ -431,7 +447,7 @@ $question
               uri,
               headers: {
                 'Content-Type': 'application/json',
-                'x-goog-api-key': _geminiApiKey,
+                'x-goog-api-key': apiKey,
               },
               body: jsonEncode({
                 'systemInstruction': {
@@ -456,7 +472,8 @@ $question
             '[AI][Gemini][$model] status=${response.statusCode} time=${sw.elapsedMilliseconds}ms');
         if (response.statusCode != 200) {
           final b = response.body;
-          debugPrint('[AI][Gemini][$model] ERROR: ${b.length > 400 ? b.substring(0, 400) : b}');
+          debugPrint(
+              '[AI][Gemini][$model] ERROR: ${b.length > 400 ? b.substring(0, 400) : b}');
           _lastError +=
               'Gemini $model → ${response.statusCode}: ${b.length > 250 ? b.substring(0, 250) : b}\n';
         }
@@ -487,7 +504,8 @@ $question
   }
 
   // ---------- GROK (xAI) ----------
-  Future<String?> _askGrok(String system, String userContent) async {
+  Future<String?> _askGrok(
+      String system, String userContent, String apiKey) async {
     try {
       final sw = Stopwatch()..start();
       final response = await http
@@ -495,7 +513,7 @@ $question
             Uri.parse('https://api.x.ai/v1/chat/completions'),
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer $_grokApiKey',
+              'Authorization': 'Bearer $apiKey',
             },
             body: jsonEncode({
               'model': _grokModel,
@@ -513,7 +531,8 @@ $question
           '[AI][Grok][$_grokModel] status=${response.statusCode} time=${sw.elapsedMilliseconds}ms');
       if (response.statusCode != 200) {
         final b = response.body;
-        debugPrint('[AI][Grok] ERROR: ${b.length > 400 ? b.substring(0, 400) : b}');
+        debugPrint(
+            '[AI][Grok] ERROR: ${b.length > 400 ? b.substring(0, 400) : b}');
         _lastError +=
             'Grok $_grokModel → ${response.statusCode}: ${b.length > 250 ? b.substring(0, 250) : b}\n';
       }
@@ -639,6 +658,8 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               itemCount: messages.length + (thinking ? 1 : 0),
               itemBuilder: (context, i) {

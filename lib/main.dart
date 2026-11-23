@@ -85,6 +85,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: const BoxDecoration(gradient: kGradient),
         child: Center(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
