@@ -6,13 +6,16 @@ import 'package:my_app/main.dart';
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    // Initialize Supabase with dummy test credentials for testing environment
+    // Initialize Supabase with a valid JWT dummy format for CI testing
     try {
       await Supabase.initialize(
-        url: 'https://example.supabase.co',
-        anonKey: 'test_anon_key_for_ci',
+        url: 'https://placeholder.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDEyODIwMDAsImV4cCI6MjU5Njg4MjAwMH0.signature',
+        debug: false,
       );
-    } catch (_) {}
+    } catch (e) {
+      // Ignore if already initialized
+    }
   });
 
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
