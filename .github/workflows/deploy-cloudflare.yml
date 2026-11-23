@@ -35,11 +35,9 @@ jobs:
             --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
             --dart-define=GROK_API_KEY=${{ secrets.GROK_API_KEY }}
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Deploy to Cloudflare Pages via Wrangler
+        uses: cloudflare/wrangler-action@3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: 'first-choice-mobile'
-          directory: 'build/web'
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy build/web --project-name=first-choice-mobile
