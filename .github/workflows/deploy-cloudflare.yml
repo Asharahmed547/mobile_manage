@@ -36,7 +36,7 @@ jobs:
             --dart-define=GROK_API_KEY=${{ secrets.GROK_API_KEY }}
 
       - name: Deploy to Cloudflare Pages via Wrangler
-        uses: cloudflare/wrangler-action@3
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
