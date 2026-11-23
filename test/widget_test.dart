@@ -12,6 +12,9 @@ import 'package:my_app/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Ensure Flutter bindings are initialized for Supabase / services
+    WidgetsFlutterBinding.ensureInitialized();
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
