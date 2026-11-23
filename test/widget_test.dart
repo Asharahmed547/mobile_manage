@@ -1,20 +1,21 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:my_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Ensure Flutter bindings are initialized for Supabase / services
-    WidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    // Initialize Supabase with dummy test credentials for testing environment
+    try {
+      await Supabase.initialize(
+        url: 'https://example.supabase.co',
+        anonKey: 'test_anon_key_for_ci',
+      );
+    } catch (_) {}
+  });
 
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
