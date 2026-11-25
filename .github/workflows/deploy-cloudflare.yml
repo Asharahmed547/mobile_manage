@@ -2,10 +2,17 @@ name: Flutter CI/CD to Cloudflare Pages
 
 on:
   push:
-    branches: [ "main", "**" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "**" ]
+    branches: [ "main" ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
@@ -33,12 +40,13 @@ jobs:
       - name: Build Web Release (Injecting API Keys)
         run: |
           flutter build web --release \
-            --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
-            --dart-define=GROK_API_KEY=${{ secrets.GROK_API_KEY }}
+            --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --dart-define=GROK_API_KEY="${{ secrets.GROK_API_KEY }}"
 
       - name: Deploy to Cloudflare Pages via Wrangler
+        if: github.event_name != 'pull_request'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/web --project-name=first-choice-mobile
+          command: pages deploy build/web --project-name=first-choice-mobile --branch=main
