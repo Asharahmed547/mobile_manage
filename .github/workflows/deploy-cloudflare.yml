@@ -1,4 +1,4 @@
-name: Flutter CI/CD to Cloudflare Pages
+name: Flutter CI/CD to Cloudflare Workers
 
 on:
   push:
@@ -43,10 +43,10 @@ jobs:
             --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
             --dart-define=GROK_API_KEY="${{ secrets.GROK_API_KEY }}"
 
-      - name: Deploy to Cloudflare Pages via Wrangler
+      - name: Deploy to Cloudflare Workers
         if: github.event_name != 'pull_request'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/web --project-name=first-choice-mobile --branch=main
+          command: deploy
